@@ -1064,17 +1064,48 @@
 <script>
     /* ─── URL parametrelerini parse et ─── */
     const params     = new URLSearchParams(window.location.search);
-    const CLOUDFLARE_HOST = 'https://wrapped-accommodations-spray-prime.trycloudflare.com';
-    function migrateStreamerUrl(u) {
+    const rawFileParam = params.get('file') || '';
+    const initialHostMatch = rawFileParam.match(/https:\/\/[^/]*trycloudflare\.com/);
+    let activeHost   = initialHostMatch ? initialHostMatch[0] : 'https://mountains-myth-alcohol-recommend.trycloudflare.com';
+
+    function migrateStreamerUrl(u, host) {
         if (!u) return '';
-        if (u.includes('onrender.com')) {
-            return u.replace(/https:\/\/[^/]*onrender\.com/, CLOUDFLARE_HOST);
+        const h = host || activeHost;
+        if (u.includes('trycloudflare.com') || u.includes('onrender.com')) {
+            return u.replace(/https:\/\/[^/]*(trycloudflare\.com|onrender\.com)/, h);
         }
         return u;
     }
-    const fileUrl    = migrateStreamerUrl(params.get('file')    || '');
-    const fileSubUrl = migrateStreamerUrl(params.get('filesub') || '');
-    const trailerUrl = migrateStreamerUrl(params.get('trailer') || '');
+    let fileUrl    = migrateStreamerUrl(params.get('file')    || '');
+    let fileSubUrl = migrateStreamerUrl(params.get('filesub') || '');
+    let trailerUrl = migrateStreamerUrl(params.get('trailer') || '');
+
+    // Fetch dynamic streamer URL from GitHub in the background
+    fetch('https://raw.githubusercontent.com/siomclip/siomclip.github.io/main/streamer_url.txt?t=' + Math.floor(Date.now() / 15000))
+        .then(r => r.text())
+        .then(h => {
+            h = h.trim();
+            if (h && h.startsWith('http') && h !== activeHost) {
+                activeHost = h;
+                const oldTarget = (currentLang === 'sub' && fileSubUrl) ? fileSubUrl : fileUrl;
+                fileUrl = migrateStreamerUrl(fileUrl, h);
+                fileSubUrl = migrateStreamerUrl(fileSubUrl, h);
+                trailerUrl = migrateStreamerUrl(trailerUrl, h);
+                const newTarget = (currentLang === 'sub' && fileSubUrl) ? fileSubUrl : fileUrl;
+                if (currentMode === 'movie') {
+                    const v = document.getElementById('player-video');
+                    if (v && v.src !== newTarget) {
+                        v.src = newTarget;
+                        v.load();
+                        v.play().catch(() => {});
+                    } else if (!v) {
+                        loadMovie();
+                    }
+                } else if (currentMode === 'trailer') {
+                    loadTrailer();
+                }
+            }
+        }).catch(() => {});
     const movieTitle = params.get('title')   || 'Sinematik Deneyim';
     const moviePoster= params.get('poster')  || '';
     const desc       = params.get('desc')       || '';
@@ -1411,13 +1442,24 @@
         // youtu.be → embed URL'ye çevir
         if (trailerUrl.includes('youtu.be')) {
             const id    = trailerUrl.split('youtu.be/')[1]?.split('?')[0];
-            const siParam = trailerUrl.includes('si=') ? '' : '';
             finalUrl = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=0&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&playsinline=1&vq=highres&hd=1`;
+            setIframe(finalUrl, false);
+            return;
         } else if (trailerUrl.includes('youtube.com/watch')) {
             const id = trailerUrl.split('v=')[1]?.split('&')[0];
             finalUrl = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=0&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&playsinline=1&vq=highres&hd=1`;
+            setIframe(finalUrl, false);
+            return;
         } else if (trailerUrl.includes('youtube.com/embed/')) {
             finalUrl = trailerUrl + (trailerUrl.includes('?') ? '&' : '?') + 'autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&vq=highres&hd=1';
+            setIframe(finalUrl, false);
+            return;
+        }
+
+        // MP4 / Telegram stream trailer
+        if (trailerUrl.endsWith('.mp4') || trailerUrl.includes('.mp4?') || trailerUrl.includes('/stream/') || trailerUrl.includes('.mkv') || trailerUrl.includes('.webm')) {
+            setNativeVideo(trailerUrl, () => setIframe(trailerUrl, false));
+            return;
         }
 
         setIframe(finalUrl, false);
@@ -1823,15 +1865,24 @@
             incrementMovieViews(ep.id);
         }
 
-        // Sayfa yenilemeden videoyu sorunsuz oynat
-        if (ep.file) {
+        fileUrl = migrateStreamerUrl(ep.file || '');
+        fileSubUrl = migrateStreamerUrl(ep.fileSub || '');
+        trailerUrl = migrateStreamerUrl(ep.trailer || '');
+
+        const langRow = document.getElementById('lang-row');
+        if (langRow) {
+            langRow.style.display = (fileUrl && fileSubUrl) ? 'flex' : 'none';
+        }
+
+        const targetUrl = (currentLang === 'sub' && fileSubUrl) ? fileSubUrl : fileUrl;
+        if (targetUrl) {
             const v = document.getElementById('player-video');
             if (v) {
-                v.src = ep.file;
+                v.src = targetUrl;
                 v.load();
                 v.play().catch(e => console.log('Autoplay:', e));
             } else {
-                setNativeVideo(ep.file);
+                setNativeVideo(targetUrl);
             }
         } else {
             container.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:16px;padding:30px;text-align:center;">Bu bölüm yakında yayınlanacaktır.</div>';
