@@ -1337,8 +1337,8 @@ const DB = {
               "title": "7. Bölüm: A Man Without Honor",
               "desc": "Jaime meets a relative; Theon hunts; Dany receives an invitation.",
               "poster": "https://static.tvmaze.com/uploads/images/original_untouched/478/1195125.jpg",
-              "file": "",
-              "fileSub": "",
+              "file": "https://wrapped-accommodations-spray-prime.trycloudflare.com/stream/348.mp4",
+              "fileSub": "https://wrapped-accommodations-spray-prime.trycloudflare.com/stream/347.mp4",
               "isYoutube": false
             },
             {
@@ -1347,8 +1347,8 @@ const DB = {
               "title": "8. Bölüm: The Prince of Winterfell",
               "desc": "Theon holds the fort; Arya calls in her debt with Jaqen; Robb is betrayed; Stannis and Davos approach their destination.",
               "poster": "https://static.tvmaze.com/uploads/images/original_untouched/478/1195126.jpg",
-              "file": "",
-              "fileSub": "",
+              "file": "https://wrapped-accommodations-spray-prime.trycloudflare.com/stream/350.mp4",
+              "fileSub": "https://wrapped-accommodations-spray-prime.trycloudflare.com/stream/349.mp4",
               "isYoutube": false
             },
             {
@@ -1357,8 +1357,8 @@ const DB = {
               "title": "9. Bölüm: Blackwater",
               "desc": "A massive battle rages for control of King's Landing and the Iron Throne.",
               "poster": "https://static.tvmaze.com/uploads/images/original_untouched/478/1195127.jpg",
-              "file": "",
-              "fileSub": "",
+              "file": "https://wrapped-accommodations-spray-prime.trycloudflare.com/stream/352.mp4",
+              "fileSub": "https://wrapped-accommodations-spray-prime.trycloudflare.com/stream/351.mp4",
               "isYoutube": false
             },
             {
@@ -1367,8 +1367,8 @@ const DB = {
               "title": "10. Bölüm: Valar Morghulis",
               "desc": "Tyrion awakens to a changed situation. King Joffrey doles out rewards to his subjects. As Theon stirs his men to action, Luwin offers some final advice. Brienne silences Jaime; Arya receives a gift from Jaqen; Dany goes to a strange place; Jon proves himself to Qhorin.",
               "poster": "https://static.tvmaze.com/uploads/images/original_untouched/478/1195128.jpg",
-              "file": "",
-              "fileSub": "",
+              "file": "https://wrapped-accommodations-spray-prime.trycloudflare.com/stream/354.mp4",
+              "fileSub": "https://wrapped-accommodations-spray-prime.trycloudflare.com/stream/353.mp4",
               "isYoutube": false
             }
           ]
@@ -6318,12 +6318,8 @@ function renderContent() {
 
   // Kart HTML oluşturucu yardımcı fonksiyon
   window.prewarmStream = function(url) {
-    if (url && (url.includes('trycloudflare.com') || url.includes('onrender.com')) && !window._renderWarmed) {
-      window._renderWarmed = true;
-      try {
-        fetch('https://wrapped-accommodations-spray-prime.trycloudflare.com/', { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
-      } catch (e) {}
-    }
+    // Disabled aggressive background prewarming to eliminate concurrent video request storms
+    return;
   };
 
   const makeCardHtml = (item) => {
