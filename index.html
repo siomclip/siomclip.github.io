@@ -6318,7 +6318,7 @@ function renderContent() {
 
   // Kart HTML oluşturucu yardımcı fonksiyon
   window.prewarmStream = function(url) {
-    if (url && url.includes('onrender.com') && !window._renderWarmed) {
+    if (url && (url.includes('trycloudflare.com') || url.includes('onrender.com')) && !window._renderWarmed) {
       window._renderWarmed = true;
       try {
         fetch('https://wrapped-accommodations-spray-prime.trycloudflare.com/', { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
