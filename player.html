@@ -249,6 +249,336 @@
             text-transform: uppercase;
         }
 
+        
+        /* ── Lüks Sinematik Ekran Yükleyicisi (Cinema Screen Loader) ── */
+        .screen-loader-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 45;
+            border-radius: inherit;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #080811;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s;
+            pointer-events: auto;
+        }
+        .screen-loader-overlay.hidden {
+            opacity: 0;
+            transform: scale(1.02);
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* Dinamik Bulanık Poster Arka Planı */
+        .sloader-backdrop {
+            position: absolute;
+            inset: -15%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(28px) brightness(0.24) saturate(1.4);
+            transform: scale(1.05);
+            animation: sloaderKenBurns 20s ease-in-out infinite alternate;
+        }
+        @keyframes sloaderKenBurns {
+            0% { transform: scale(1.05) translate(0, 0); }
+            100% { transform: scale(1.15) translate(-1%, -1%); }
+        }
+
+        /* Derinlik Sağlayan Radial Vignette */
+        .sloader-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 0, 85, 0.08) 0%, rgba(10, 10, 18, 0.65) 55%, rgba(5, 5, 10, 0.95) 100%);
+            pointer-events: none;
+        }
+
+        /* Cam Efektli (Glassmorphic) Ana İçerik Kartı */
+        .sloader-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(14, 14, 24, 0.72);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px 32px 20px 32px;
+            max-width: 440px;
+            width: 88%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(255, 0, 85, 0.12);
+            animation: sloaderFloat 4s ease-in-out infinite alternate;
+        }
+        @keyframes sloaderFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-4px); }
+        }
+
+        /* Üst Başlık & Dizi Etiketi */
+        .sloader-eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ff0055, #ffaa00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .sloader-title {
+            font-size: 19px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 12px 0;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Kalite Rozetleri */
+        .sloader-badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .sloader-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .sloader-badge.gold {
+            background: rgba(255, 183, 0, 0.15);
+            color: #ffc425;
+            border-color: rgba(255, 183, 0, 0.35);
+        }
+        .sloader-badge.accent {
+            background: rgba(255, 0, 85, 0.15);
+            color: #ff3377;
+            border-color: rgba(255, 0, 85, 0.35);
+        }
+
+        /* Çift Halkalı Parıltılı Yükleme Animasyonu */
+        .sloader-anim-hub {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .sloader-ring-outer {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #ff0055;
+            border-right-color: #ff7700;
+            animation: sloaderSpin 1.2s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.65));
+        }
+        .sloader-ring-inner {
+            position: absolute;
+            inset: 7px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-bottom-color: #ffb700;
+            border-left-color: #ff00aa;
+            animation: sloaderSpinReverse 0.9s linear infinite;
+            filter: drop-shadow(0 0 8px rgba(255, 183, 0, 0.5));
+        }
+        .sloader-pulse-core {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 0, 85, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: sloaderPulse 1.6s ease-in-out infinite;
+        }
+        @keyframes sloaderSpin { to { transform: rotate(360deg); } }
+        @keyframes sloaderSpinReverse { to { transform: rotate(-360deg); } }
+        @keyframes sloaderPulse {
+            0%, 100% { transform: scale(0.92); opacity: 0.6; }
+            50% { transform: scale(1.12); opacity: 1; }
+        }
+
+        /* Ses Spektrumu / Equalizer Çubukları */
+        .sloader-wave {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 18px;
+            margin-bottom: 12px;
+        }
+        .sloader-wave .bar {
+            width: 3px;
+            background: linear-gradient(to top, #ff0055, #ffaa00);
+            border-radius: 2px;
+            animation: sloaderBar 1.2s ease-in-out infinite alternate;
+        }
+        .sloader-wave .bar1 { height: 6px; animation-delay: 0.1s; }
+        .sloader-wave .bar2 { height: 14px; animation-delay: 0.3s; }
+        .sloader-wave .bar3 { height: 18px; animation-delay: 0.0s; }
+        .sloader-wave .bar4 { height: 10px; animation-delay: 0.4s; }
+        .sloader-wave .bar5 { height: 7px; animation-delay: 0.2s; }
+        @keyframes sloaderBar {
+            0% { height: 4px; opacity: 0.4; }
+            100% { height: 18px; opacity: 1; }
+        }
+
+        /* Durum Metni & Shimmer İlerleme Çubuğu */
+        .sloader-status {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        .sloader-progress-track {
+            width: 100%;
+            max-width: 260px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 14px;
+        }
+        .sloader-progress-bar {
+            position: absolute;
+            height: 100%;
+            width: 40%;
+            background: linear-gradient(90deg, transparent, #ff0055, #ffb700, transparent);
+            border-radius: 3px;
+            animation: sloaderShimmer 1.8s infinite ease-in-out;
+        }
+        @keyframes sloaderShimmer {
+            0% { left: -40%; }
+            100% { left: 100%; }
+        }
+
+        /* İpucu Kutusu */
+        .sloader-tip {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.4;
+        }
+        .sloader-tip strong, .sloader-tip kbd {
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin: 0 3px;
+            font-size: 10px;
+            font-family: inherit;
+        }
+
+        /* Tamponlanma (Mini Buffer Pill) */
+        .player-buffering-pill {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 48;
+            background: rgba(14, 14, 22, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 0, 85, 0.35);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ff3377;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+        }
+        .player-buffering-pill.visible {
+            display: flex;
+            animation: fadeInPill 0.25s ease;
+        }
+        .buffering-dot {
+            width: 8px; height: 8px;
+            background: #ff0055;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff0055;
+            animation: bdotPulse 1.2s infinite;
+        }
+        @keyframes bdotPulse {
+            0%, 100% { transform: scale(0.9); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .sloader-card {
+                padding: 16px 20px;
+                border-radius: 16px;
+                width: 92%;
+            }
+            .sloader-title {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            .sloader-anim-hub {
+                width: 48px; height: 48px;
+                margin-bottom: 12px;
+            }
+            .sloader-tip {
+                display: none;
+            }
+            .sloader-badges {
+                margin-bottom: 12px;
+            }
+        }
+
+        
+        .sloader-play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #ff0055 0%, #ff5500 100%);
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 24px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.45);
+            margin-top: 10px;
+            transition: all 0.25s ease;
+            animation: sloaderBtnPulse 1.8s infinite;
+        }
+        .sloader-play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 35px rgba(255, 0, 85, 0.7);
+        }
+        @keyframes sloaderBtnPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); }
+            50% { box-shadow: 0 0 32px rgba(255, 0, 85, 0.7); }
+        }
+
         /* ── Responsive ── */
         @media (max-width: 768px) {
             .player-header { padding: 18px 20px; }
@@ -1499,17 +1829,99 @@
         setTimeout(fadeOutLoader, 180);
     }
 
+
+        function triggerSloaderPlay() {
+        const v = document.getElementById('player-video');
+        if (v) {
+            v.play().then(() => {
+                hideScreenLoader();
+                fadeOutLoader();
+            }).catch(() => {
+                hideScreenLoader();
+            });
+        }
+    }
+
+    /* ─── Lüks Sinematik Ekran Yükleyicisi Kontrolcüleri ─── */
+    function updateScreenLoaderInfo(opt = {}) {
+        const sloader = document.getElementById('screen-loader-overlay');
+        if (!sloader) return;
+        
+        const bg = document.getElementById('sloader-backdrop');
+        const eyebrow = document.getElementById('sloader-eyebrow');
+        const title = document.getElementById('sloader-title');
+        const langBadge = document.getElementById('sloader-lang-badge');
+        const status = document.getElementById('sloader-status');
+        const playBtn = document.getElementById('sloader-play-btn');
+        if (playBtn) playBtn.style.display = 'none';
+
+        const curSeason = (activeSeriesData && activeSeriesData.seasons) ? activeSeriesData.seasons.find(s => s.id === currentSeasonId) : null;
+        const poster = opt.poster || (curSeason && curSeason.poster) || (activeSeriesData && activeSeriesData.poster) || moviePoster || '';
+        if (bg && poster) {
+            bg.style.backgroundImage = `url(${poster})`;
+        }
+
+        if (eyebrow) {
+            eyebrow.textContent = opt.eyebrow || (activeSeriesData ? `${activeSeriesData.seriesTitle} • ${curSeason ? curSeason.title : '1. Sezon'}` : 'SİNEMATİK DENEYİM');
+        }
+        if (title) {
+            title.textContent = opt.title || movieTitle || 'Film';
+        }
+        if (langBadge) {
+            langBadge.textContent = (currentLang === 'sub') ? 'TÜRKÇE ALTYAZILI' : 'TÜRKÇE DUBLAJ';
+        }
+        if (status) {
+            status.textContent = 'Yüksek Hızlı Sinema Akışı Bağlanıyor...';
+        }
+    }
+
+    let screenLoaderTimer = null;
+    function showScreenLoader(opt = {}) {
+        const sloader = document.getElementById('screen-loader-overlay');
+        if (!sloader) return;
+        
+        updateScreenLoaderInfo(opt);
+        sloader.classList.remove('hidden');
+        sloader.style.display = 'flex';
+
+        if (screenLoaderTimer) clearTimeout(screenLoaderTimer);
+        screenLoaderTimer = setTimeout(() => {
+            const status = document.getElementById('sloader-status');
+        const playBtn = document.getElementById('sloader-play-btn');
+        if (playBtn) playBtn.style.display = 'none';
+            if (status && !sloader.classList.contains('hidden')) {
+                status.textContent = 'Telegram Bulut Akışına Bağlandı • Çözümleniyor...';
+            }
+        }, 2800);
+    }
+
+    function hideScreenLoader() {
+        const sloader = document.getElementById('screen-loader-overlay');
+        if (!sloader || sloader.classList.contains('hidden')) return;
+        
+        if (screenLoaderTimer) {
+            clearTimeout(screenLoaderTimer);
+            screenLoaderTimer = null;
+        }
+        sloader.classList.add('hidden');
+        setTimeout(() => {
+            if (sloader.classList.contains('hidden')) {
+                sloader.style.display = 'none';
+            }
+        }, 450);
+    }
+
     /* ─── Loader helpers ─── */
-    function showLoader() {
+    function showLoader(opt = {}) {
+        showScreenLoader(opt);
         const l = document.getElementById('player-loader');
-        const txt = document.getElementById('loader-text');
-        if (txt) txt.textContent = 'Premium Sinema Yükleniyor...';
         if (l) {
             l.style.opacity = '1';
             l.style.display = 'flex';
         }
     }
     function fadeOutLoader() {
+        hideScreenLoader();
         const l = document.getElementById('player-loader');
         if (!l || l.style.display === 'none') return;
         l.style.opacity = '0';
@@ -1874,17 +2286,27 @@
             langRow.style.display = (fileUrl && fileSubUrl) ? 'flex' : 'none';
         }
 
+        showScreenLoader({
+            eyebrow: `${activeSeriesData ? activeSeriesData.seriesTitle : ''} • ${curSeason ? curSeason.title : ''}`,
+            title: ep.title,
+            poster: ep.poster || (curSeason && curSeason.poster) || (activeSeriesData && activeSeriesData.poster)
+        });
+
         const targetUrl = (currentLang === 'sub' && fileSubUrl) ? fileSubUrl : fileUrl;
         if (targetUrl) {
             const v = document.getElementById('player-video');
             if (v) {
                 v.src = targetUrl;
                 v.load();
-                v.play().catch(e => console.log('Autoplay:', e));
+                v.play().catch(e => {
+                    const btn = document.getElementById('sloader-play-btn');
+                    if (btn) btn.style.display = 'inline-flex';
+                });
             } else {
                 setNativeVideo(targetUrl);
             }
         } else {
+            hideScreenLoader();
             container.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:16px;padding:30px;text-align:center;">Bu bölüm yakında yayınlanacaktır.</div>';
         }
     }
