@@ -1064,9 +1064,17 @@
 <script>
     /* ─── URL parametrelerini parse et ─── */
     const params     = new URLSearchParams(window.location.search);
-    const fileUrl    = params.get('file')    || '';
-    const fileSubUrl = params.get('filesub') || '';
-    const trailerUrl = params.get('trailer') || '';
+    const CLOUDFLARE_HOST = 'https://wrapped-accommodations-spray-prime.trycloudflare.com';
+    function migrateStreamerUrl(u) {
+        if (!u) return '';
+        if (u.includes('onrender.com')) {
+            return u.replace(/https:\/\/[^/]*onrender\.com/, CLOUDFLARE_HOST);
+        }
+        return u;
+    }
+    const fileUrl    = migrateStreamerUrl(params.get('file')    || '');
+    const fileSubUrl = migrateStreamerUrl(params.get('filesub') || '');
+    const trailerUrl = migrateStreamerUrl(params.get('trailer') || '');
     const movieTitle = params.get('title')   || 'Sinematik Deneyim';
     const moviePoster= params.get('poster')  || '';
     const desc       = params.get('desc')       || '';
