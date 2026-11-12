@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>SiomClip | Spatial Cinema</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=6.0.0">
+    <link rel="stylesheet" href="css/style.css?v=6.1.0">
     <link rel="prefetch" href="player.html">
 </head>
 <body>
@@ -6469,8 +6469,31 @@ function renderContent() {
   content.innerHTML = `
     ${categoriesHtml}
 
-    <div class="split-matrix-container">
-      <!-- SOL BLOK: SERİ FİLMLER veya FİNAL YAPMIŞ DİZİLER -->
+    <div class="catalog-outer-layout">
+      <!-- SOL PANEL: FİLM İSTEK / ÖNERİ PANELİ -->
+      <aside class="side-request-panel panel-left" id="film-request-panel">
+        <div class="request-card">
+          <div class="request-header">
+            <div class="request-badge badge-film">🎬 FİLM ÖNERİSİ</div>
+            <h3 class="request-title">Film İsteği</h3>
+            <p class="request-desc">Sitemizde görmek istediğiniz filmi yazın, en kısa sürede ekleyelim.</p>
+          </div>
+          <div class="request-form">
+            <textarea class="request-input" id="film-request-input" placeholder="Örn: Inception, Interstellar..." rows="3" maxlength="250"></textarea>
+            <button class="request-submit-btn btn-film" id="film-request-btn" onclick="submitUserRequest('film')">
+              <span>İsteği Gönder</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+            <div class="request-feedback" id="film-request-feedback"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ORTA: MATRIX CONTAINER (SERİ & TEKLİ AFİŞLER) -->
+      <div class="split-matrix-container">
+        <!-- SOL BLOK: SERİ FİLMLER veya FİNAL YAPMIŞ DİZİLER -->
       <div class="matrix-column">
         <div class="matrix-column-header">
           <button class="matrix-title-btn ${col1YearFilter === 'all' ? 'active' : ''}" onclick="setCol1Year('all')" title="Tümünü Göster">
@@ -6515,6 +6538,28 @@ function renderContent() {
           ${col2List.length > 0 ? col2List.map(makeCardHtml).join('') : `<div class="no-results-text">${col2Empty}</div>`}
         </div>
       </div>
+    </div>
+
+      <!-- SAĞ PANEL: DİZİ İSTEK / ÖNERİ PANELİ -->
+      <aside class="side-request-panel panel-right" id="series-request-panel">
+        <div class="request-card">
+          <div class="request-header">
+            <div class="request-badge badge-series">📺 DİZİ ÖNERİSİ</div>
+            <h3 class="request-title">Dizi İsteği</h3>
+            <p class="request-desc">Sitemizde görmek istediğiniz diziyi yazın, en kısa sürede ekleyelim.</p>
+          </div>
+          <div class="request-form">
+            <textarea class="request-input" id="series-request-input" placeholder="Örn: Dexter, Severance, Lost..." rows="3" maxlength="250"></textarea>
+            <button class="request-submit-btn btn-series" id="series-request-btn" onclick="submitUserRequest('series')">
+              <span>İsteği Gönder</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+            <div class="request-feedback" id="series-request-feedback"></div>
+          </div>
+        </div>
+      </aside>
     </div>
   `;
 }
@@ -7396,6 +7441,90 @@ function initRealVisitCounter() {
     })
     .catch(() => {});
 }
+
+// ==========================================
+// KULLANICI FİLM / DİZİ İSTEK PANELİ (TELEGRAM BİLDİRİMİ)
+// ==========================================
+window.submitUserRequest = async function(type) {
+  const isFilm = type === 'film';
+  const inputEl = document.getElementById(isFilm ? 'film-request-input' : 'series-request-input');
+  const btnEl = document.getElementById(isFilm ? 'film-request-btn' : 'series-request-btn');
+  const feedbackEl = document.getElementById(isFilm ? 'film-request-feedback' : 'series-request-feedback');
+
+  const val = (inputEl ? inputEl.value : '').trim();
+  if (!val) {
+    if (feedbackEl) {
+      feedbackEl.textContent = 'Lütfen bir ' + (isFilm ? 'film' : 'dizi') + ' adı yazın.';
+      feedbackEl.className = 'request-feedback error';
+    }
+    if (inputEl) inputEl.focus();
+    return;
+  }
+
+  // Peş peşe spam engelleme (20 saniye bekleme süresi)
+  const now = Date.now();
+  if (window._lastRequestSent && (now - window._lastRequestSent < 20000)) {
+    if (feedbackEl) {
+      feedbackEl.textContent = 'Yeni bir istek göndermek için lütfen biraz bekleyin.';
+      feedbackEl.className = 'request-feedback error';
+    }
+    return;
+  }
+
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<span>Gönderiliyor...</span>';
+  }
+
+  const tgText = `🔔 <b>YENİ ${isFilm ? '🎬 FİLM' : '📺 DİZİ'} İSTEĞİ!</b>\n` +
+                 `━━━━━━━━━━━━━━━━━━\n` +
+                 `📌 <b>İstenen:</b> ${val.replace(/</g, '&lt;').replace(/>/g, '&gt;')}\n` +
+                 `⏰ <b>Tarih:</b> ${new Date().toLocaleString('tr-TR')}\n` +
+                 `🌐 <b>Kaynak:</b> SiomCinema İzleyici Paneli\n` +
+                 `━━━━━━━━━━━━━━━━━━`;
+
+  try {
+    const token = '9139736297:AAGjYwmFGt6seuMnbb6qaBImVPv3VAii-hY';
+    const chatId = '-1003995387951';
+    const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: tgText,
+        parse_mode: 'HTML'
+      })
+    });
+
+    const resJson = await resp.json();
+    if (resJson && resJson.ok) {
+      window._lastRequestSent = Date.now();
+      if (inputEl) inputEl.value = '';
+      if (feedbackEl) {
+        feedbackEl.textContent = '✅ İsteğiniz alındı, teşekkürler!';
+        feedbackEl.className = 'request-feedback success';
+      }
+    } else {
+      throw new Error(resJson.description || 'Hata');
+    }
+  } catch (err) {
+    if (feedbackEl) {
+      feedbackEl.textContent = 'Gönderilemedi. Lütfen tekrar deneyin.';
+      feedbackEl.className = 'request-feedback error';
+    }
+  } finally {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = `<span>İsteği Gönder</span><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`;
+    }
+    setTimeout(() => {
+      if (feedbackEl && feedbackEl.classList.contains('success')) {
+        feedbackEl.textContent = '';
+      }
+    }, 6000);
+  }
+};
+
 </script>
     <script>
         // PLAYER SOURCE TOGGLE LOGIC
