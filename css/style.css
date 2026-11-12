@@ -391,9 +391,10 @@ body {
 .split-matrix-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 50px;
+    gap: 40px;
     width: 100%;
     max-width: 1600px;
+    flex: 1 1 1600px;
     margin: 0 auto;
 }
 .matrix-column {
@@ -599,8 +600,8 @@ body {
     grid-template-columns: repeat(5, 1fr); 
     gap: 15px; 
 }
-.card { position: relative; width: 100%; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: 0.4s; }
-.card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: 0.4s; }
+.card { position: relative; width: 100%; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: 0.4s; background: #0d0d12; }
+.card img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.75; transition: 0.4s; }
 .card-wrapper:hover .card { border-color: var(--accent); box-shadow: 0 0 20px rgba(255,15,35,0.3); transform: translateY(-10px); }
 .card-wrapper:hover img { opacity: 1; }
 
@@ -677,9 +678,27 @@ body {
     cursor: pointer; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .series-item .card {
-    border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5); transition: 0.4s;
+    position: relative;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    transition: 0.4s;
     aspect-ratio: 2/3;
+    background: #0d0d12;
+}
+.series-item .card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0.85;
+    transition: 0.4s;
+}
+.series-item:hover .card img {
+    opacity: 1;
+    transform: scale(1.03);
 }
 .series-item:hover { transform: translateY(-10px) scale(1.05); }
 .series-item:hover .card { 
@@ -1406,8 +1425,8 @@ body {
 }
 .category-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 14px;
     width: 100%;
     margin-top: 20px;
 }
@@ -1418,6 +1437,13 @@ body {
     color: var(--accent);
     letter-spacing: 1.5px;
     background: linear-gradient(to top, rgba(255, 15, 35, 0.15) 0%, rgba(3, 3, 5, 0.6) 75%, transparent 100%);
+}
+
+@media (max-width: 1300px) {
+    .category-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
 }
 
 @media (max-width: 1024px) {
@@ -1701,21 +1727,22 @@ body {
 /* ─── İZLEYİCİ İSTEK / ÖNERİ PANELLERİ (SOL FİLM - SAĞ DİZİ) ─── */
 .catalog-outer-layout {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: flex-start;
-    gap: 32px;
+    gap: 20px;
     width: 100%;
-    max-width: 1960px;
+    max-width: 100%;
+    padding: 0 25px;
     margin: 0 auto;
     position: relative;
     box-sizing: border-box;
 }
 
 .side-request-panel {
-    width: 240px;
-    flex-shrink: 0;
+    width: 200px;
+    flex: 0 0 200px;
     position: sticky;
-    top: 90px;
+    top: 85px;
     z-index: 8;
 }
 
@@ -1725,11 +1752,11 @@ body {
     -webkit-backdrop-filter: blur(18px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
-    padding: 20px 16px;
+    padding: 16px 14px;
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -1885,15 +1912,17 @@ body {
     color: #ff4757;
 }
 
-@media (max-width: 1600px) {
+@media (max-width: 1680px) {
     .side-request-panel {
-        width: 210px;
+        width: 175px;
+        flex: 0 0 175px;
     }
     .catalog-outer-layout {
-        gap: 20px;
+        gap: 16px;
+        padding: 0 15px;
     }
 }
-@media (max-width: 1280px) {
+@media (max-width: 1300px) {
     .catalog-outer-layout {
         flex-direction: column;
         align-items: center;
