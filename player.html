@@ -579,6 +579,72 @@
             50% { box-shadow: 0 0 32px rgba(255, 0, 85, 0.7); }
         }
 
+        
+        /* ── Yayın Sunucusu Bağlantı Hatası Kartı ── */
+        .stream-error-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px 24px;
+            max-width: 480px;
+            width: 90%;
+            background: rgba(14, 14, 22, 0.92);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 0, 85, 0.35);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(255, 0, 85, 0.15);
+            animation: fadeInPill 0.3s ease;
+            z-index: 50;
+        }
+        .stream-error-icon {
+            font-size: 38px;
+            margin-bottom: 12px;
+        }
+        .stream-error-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 8px 0;
+        }
+        .stream-error-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.65);
+            margin: 0 0 16px 0;
+            line-height: 1.5;
+        }
+        .stream-error-action-hint {
+            font-size: 12px;
+            color: rgba(255, 183, 0, 0.95);
+            background: rgba(255, 183, 0, 0.1);
+            border: 1px solid rgba(255, 183, 0, 0.25);
+            padding: 8px 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .stream-error-retry-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #ff0055, #ff5500);
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 24px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+            transition: all 0.2s ease;
+        }
+        .stream-error-retry-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.7);
+        }
+
         /* ── Responsive ── */
         @media (max-width: 768px) {
             .player-header { padding: 18px 20px; }
@@ -1716,7 +1782,7 @@
 
         // Gerçek .mp4 / stream
         if (currentFileUrl.endsWith('.mp4') || currentFileUrl.includes('.mp4?') || currentFileUrl.includes('/stream/') || currentFileUrl.includes('.mkv') || currentFileUrl.includes('.webm')) {
-            setNativeVideo(currentFileUrl, () => setIframe(currentFileUrl, false));
+            setNativeVideo(currentFileUrl, () => showStreamError(currentFileUrl));
             return;
         }
         // Dailymotion → Standard working HTML5 Embed (Fullscreen fixed programmatically via setIframe)
@@ -1788,7 +1854,7 @@
 
         // MP4 / Telegram stream trailer
         if (trailerUrl.endsWith('.mp4') || trailerUrl.includes('.mp4?') || trailerUrl.includes('/stream/') || trailerUrl.includes('.mkv') || trailerUrl.includes('.webm')) {
-            setNativeVideo(trailerUrl, () => setIframe(trailerUrl, false));
+            setNativeVideo(trailerUrl, () => showStreamError(trailerUrl));
             return;
         }
 
@@ -1840,6 +1906,51 @@
                 hideScreenLoader();
             });
         }
+    }
+
+    
+    function showStreamError(url) {
+        hideScreenLoader();
+        fadeOutLoader();
+        container.innerHTML = `
+            <div class="stream-error-card">
+                <div class="stream-error-icon">⚠️</div>
+                <h3 class="stream-error-title">Yayın Sunucusuna Bağlanılamadı</h3>
+                <p class="stream-error-desc">Bilgisayarınızdaki yerel yayın sunucusu kapalı olabilir veya tünel adresi henüz eşitlenmemiş olabilir.</p>
+                <div class="stream-error-action-hint">
+                    Masaüstünüzdeki <strong>SIOM_YAYINI_BASLAT.bat</strong> dosyasına çift tıklayarak yayını başlatabilirsiniz.
+                </div>
+                <button class="stream-error-retry-btn" onclick="retryActiveStream()">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                    Yeniden Bağlan
+                </button>
+            </div>
+        `;
+    }
+
+    function retryActiveStream() {
+        showScreenLoader();
+        fetch('https://raw.githubusercontent.com/siomclip/siomclip.github.io/main/streamer_url.txt?t=' + Date.now())
+            .then(r => r.text())
+            .then(h => {
+                h = h.trim();
+                if (h && h.startsWith('http')) {
+                    activeHost = h;
+                    fileUrl = migrateStreamerUrl(fileUrl, h);
+                    fileSubUrl = migrateStreamerUrl(fileSubUrl, h);
+                    trailerUrl = migrateStreamerUrl(trailerUrl, h);
+                    if (currentMode === 'movie') {
+                        loadMovie();
+                    } else {
+                        loadTrailer();
+                    }
+                } else {
+                    hideScreenLoader();
+                }
+            })
+            .catch(() => {
+                hideScreenLoader();
+            });
     }
 
     /* ─── Lüks Sinematik Ekran Yükleyicisi Kontrolcüleri ─── */

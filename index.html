@@ -7420,11 +7420,23 @@ function initRealVisitCounter() {
                     if(!currentMovieData) return;
                     
                     const fileUrl = currentMovieFileUrl || currentMovieData.file;
+                    const resUrl = window.resolveStreamUrl ? window.resolveStreamUrl(fileUrl) : fileUrl;
 
                     btnMovie.classList.add('active');
                     btnTrailer.classList.remove('active');
                     badgeEl.innerText = "SİNEMA MODU";
-                    iframe.src = fileUrl;
+                    
+                    if (resUrl.includes('.mp4') || resUrl.includes('/stream/')) {
+                        const container = document.querySelector('.player-container');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="player-logo-blocker" id="logo-blocker" style="display:none;"></div>
+                                <video id="player-frame" src="${resUrl}" controls autoplay playsinline style="width:100%; height:100%; object-fit:contain; background:#000; display:block;"></video>
+                            `;
+                        }
+                    } else if (iframe) {
+                        iframe.src = resUrl;
+                    }
                 });
 
                 btnTrailer.addEventListener('click', () => {
@@ -7432,7 +7444,20 @@ function initRealVisitCounter() {
                     btnTrailer.classList.add('active');
                     btnMovie.classList.remove('active');
                     badgeEl.innerText = "FRAGMAN MODU";
-                    iframe.src = formatTrailerUrl(currentMovieData.trailer);
+                    
+                    const trUrl = window.resolveStreamUrl ? window.resolveStreamUrl(currentMovieData.trailer) : currentMovieData.trailer;
+                    const formatted = formatTrailerUrl(trUrl);
+                    if (formatted.includes('.mp4') || formatted.includes('/stream/')) {
+                        const container = document.querySelector('.player-container');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="player-logo-blocker" id="logo-blocker" style="display:none;"></div>
+                                <video id="player-frame" src="${formatted}" controls autoplay playsinline style="width:100%; height:100%; object-fit:contain; background:#000; display:block;"></video>
+                            `;
+                        }
+                    } else if (iframe) {
+                        iframe.src = formatted;
+                    }
                 });
             }
         });
