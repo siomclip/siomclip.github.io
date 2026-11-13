@@ -998,6 +998,10 @@ body {
     50% { opacity: 1; transform: scale(1.2); }
 }
 
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 
 /* Responsive adjustments for Player */
 @media (max-width: 768px) {
