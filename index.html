@@ -5004,12 +5004,12 @@ const DB = {
       "poster": "assets/img/yanyana.jpg",
       "file": "https://six-easily-proceeds-framed.trycloudflare.com/stream/8.mp4",
       "trailer": "https://six-easily-proceeds-framed.trycloudflare.com/stream/72.mp4",
-      "searchTags": "yanyana, animasyon, komedi, macera",
-      "year": "2024",
+      "searchTags": "yanyana, yan yana, türk filmi, yerli sinema, komedi, dram, haluk bilginer, feyyaz yiğit",
+      "year": "2025",
       "match": "95%",
       "meta": "4K Ultra HD",
       "rating": "8.2",
-      "highlights": "Sürükleyici ve yepyeni bir animasyon deneyimi.",
+      "highlights": "Haluk Bilginer ve Feyyaz Yiğit'in başrolünde yer aldığı dokunaklı Türk komedi-dram filmi.",
       "isNew": true,
       "isYoutube": false
     },
@@ -5398,7 +5398,7 @@ const DB = {
       "poster": "assets/img/thesleeper.jpg",
       "file": "https://six-easily-proceeds-framed.trycloudflare.com/stream/7.mp4",
       "trailer": "https://six-easily-proceeds-framed.trycloudflare.com/stream/116.mp4",
-      "searchTags": "the sleeper, uykucu, uyuyan, gerilim, korku, gizem",
+      "searchTags": "the sleeper, uykucu, uyuyan, türk filmi, aksiyon, gerilim, gizem, çağatay ulusoy",
       "year": "2024",
       "match": "93%",
       "meta": "4K Ultra HD",
@@ -5657,7 +5657,7 @@ const SERIES_CATEGORIES = [
   {
     id: 'cat-dizi-basyapit',
     title: 'Kült & Başyapıtlar',
-    poster: 'assets/img/kategori_yerli_diziler.webp',
+    poster: 'assets/img/kategori_kult_basyapitlar.webp',
     desc: 'Tüm zamanların en yüksek puanlı, unutulmaz ve ödüllü başyapıt dizileri.',
     key: 'dizi-basyapit'
   },
@@ -5698,54 +5698,89 @@ function initApp() {
     if (typeof DB === 'undefined') return;
     allContent = [...DB.movies, ...DB.series];
     
+    const SERIES_CATEGORY_IDS = {
+      'son-eklenenler-dizi': [
+        'stranger-things-series',
+        'squid-game-series',
+        'the-boys-series',
+        'house-of-the-dragon-series',
+        'wednesday-series',
+        'the-greatest-series'
+      ],
+      'dizi-aksiyon-macera': [
+        'the-boys-series',
+        'game-of-thrones-series',
+        'house-of-the-dragon-series',
+        'the-last-of-us-series',
+        'arcane-series',
+        'vision-quest-series',
+        'squid-game-series'
+      ],
+      'dizi-suc-polisiye': [
+        'breaking-bad-series',
+        'the-boys-series',
+        'squid-game-series',
+        'wednesday-series'
+      ],
+      'dizi-bilim-kurgu': [
+        'stranger-things-series',
+        'dark-series',
+        'game-of-thrones-series',
+        'house-of-the-dragon-series',
+        'arcane-series',
+        'vision-quest-series',
+        'the-last-of-us-series',
+        'wednesday-series',
+        'the-boys-series'
+      ],
+      'dizi-basyapit': [
+        'breaking-bad-series',
+        'game-of-thrones-series',
+        'dark-series',
+        'chernobyl-series',
+        'stranger-things-series',
+        'house-of-the-dragon-series',
+        'the-last-of-us-series',
+        'arcane-series'
+      ],
+      'dizi-dram-romantik': [
+        'the-greatest-series',
+        'chernobyl-series',
+        'the-last-of-us-series',
+        'breaking-bad-series',
+        'game-of-thrones-series',
+        'house-of-the-dragon-series'
+      ],
+      'dizi-gerilim': [
+        'stranger-things-series',
+        'squid-game-series',
+        'dark-series',
+        'the-last-of-us-series',
+        'wednesday-series'
+      ]
+    };
+    const KNOWN_SERIES_IDS = new Set([...Object.values(SERIES_CATEGORY_IDS).flat(), 's1']);
+
     // Dinamik Dizi Kategori Oluşturucu (YALNIZCA DB.series kullanılır, filmler kesinlikle sızamaz)
     seriesCategories = SERIES_CATEGORIES.map(cat => {
-      let matches = [];
-      if (cat.key === 'son-eklenenler-dizi') {
-        const latestSeriesIds = [
-          'the-greatest-series',
-          'vision-quest-series',
-          's1',
-          'arcane-series',
-          'breaking-bad-series',
-          'the-boys-series'
-        ];
-        matches = latestSeriesIds.map(id => DB.series.find(s => s.id === id)).filter(Boolean);
-        if (matches.length < 6) {
-          DB.series.forEach(s => {
-            if (!matches.some(m => m.id === s.id) && matches.length < 6) matches.push(s);
-          });
-        }
-      } else {
+      const curated = SERIES_CATEGORY_IDS[cat.key] || [];
+      let matches = curated.map(id => DB.series.find(s => s.id === id)).filter(Boolean);
+
+      if (cat.key !== 'son-eklenenler-dizi') {
         DB.series.forEach(item => {
+          if (KNOWN_SERIES_IDS.has(item.id)) return;
           const tags = ((item.searchTags || '') + ' ' + (item.title || '') + ' ' + (item.desc || '')).toLowerCase();
-          let matchesThisCat = false;
-          
-          if (cat.key === 'dizi-aksiyon-macera') {
-            matchesThisCat = tags.includes('aksiyon') || tags.includes('macera') || tags.includes('the boys') || tags.includes('arcane') || tags.includes('game of thrones') || item.id === 's1' || item.id === 'the-greatest-series' || item.id === 'house-of-the-dragon-series' || item.id === 'the-last-of-us-series';
-          } else if (cat.key === 'dizi-suc-polisiye') {
-            matchesThisCat = tags.includes('suç') || tags.includes('polisiye') || tags.includes('breaking bad') || tags.includes('the boys') || tags.includes('squid game');
-          } else if (cat.key === 'dizi-bilim-kurgu') {
-            matchesThisCat = tags.includes('bilim kurgu') || tags.includes('fantastik') || tags.includes('dark') || tags.includes('stranger things') || tags.includes('house of the dragon') || tags.includes('game of thrones') || tags.includes('the last of us') || tags.includes('arcane') || tags.includes('wednesday') || tags.includes('vision quest') || item.id === 's1';
-          } else if (cat.key === 'dizi-basyapit') {
-            matchesThisCat = tags.includes('breaking bad') || tags.includes('game of thrones') || tags.includes('chernobyl') || tags.includes('dark') || tags.includes('arcane') || tags.includes('the last of us') || tags.includes('house of the dragon');
-          } else if (cat.key === 'dizi-dram-romantik') {
-            matchesThisCat = tags.includes('dram') || tags.includes('romantik') || tags.includes('gizem') || tags.includes('chernobyl') || tags.includes('breaking bad') || tags.includes('the last of us') || tags.includes('dark') || tags.includes('the greatest');
-          } else if (cat.key === 'dizi-gerilim') {
-            matchesThisCat = tags.includes('gerilim') || tags.includes('korku') || tags.includes('stranger things') || tags.includes('squid game') || tags.includes('wednesday') || tags.includes('dark') || tags.includes('chernobyl');
-          }
-          
-          if (matchesThisCat) {
-            matches.push(item);
-          }
+          let ok = false;
+          if (cat.key === 'dizi-aksiyon-macera') ok = tags.includes('aksiyon') || tags.includes('macera');
+          else if (cat.key === 'dizi-suc-polisiye') ok = tags.includes('suç') || tags.includes('polisiye');
+          else if (cat.key === 'dizi-bilim-kurgu') ok = tags.includes('bilim kurgu') || tags.includes('fantastik');
+          else if (cat.key === 'dizi-basyapit') ok = tags.includes('başyapıt');
+          else if (cat.key === 'dizi-dram-romantik') ok = tags.includes('dram') || tags.includes('romantik');
+          else if (cat.key === 'dizi-gerilim') ok = tags.includes('gerilim') || tags.includes('korku');
+          if (ok && !matches.some(m => m.id === item.id)) matches.push(item);
         });
-        
-        // Fallback
-        if (matches.length === 0) {
-          matches = DB.series.slice(0, 3);
-        }
       }
-      
+
       return {
         id: cat.id,
         title: cat.title,
@@ -5756,92 +5791,113 @@ function initApp() {
       };
     });
 
+    const MOVIE_CATEGORY_IDS = {
+      'son-eklenenler-film': [
+        'the-odyssey-2026',
+        'the-gospel-of-christmas-2026',
+        'the-mongoose-2026',
+        'vahsinin-kalbi-2026',
+        'minecraft-filmi-2025',
+        'kpop-iblis-avilari-movie'
+      ],
+      'animasyon': [
+        'minecraft-filmi-2025',
+        'ne-zha-movie',
+        'saftirik-greg-movie',
+        'ancak-ruyada-olur-movie',
+        'the-twits-movie',
+        'karaya-movie',
+        'stitch-head-movie',
+        'sarkici-balina-movie',
+        'swapped-movie',
+        'm1',
+        'm2',
+        'm3',
+        'm4',
+        'm5',
+        'm7',
+        'mario-movie',
+        'super-mario-galaxy-movie',
+        'm9',
+        'm10',
+        'bitirim-karinca-movie',
+        'raya-ve-son-ejderha-movie',
+        'kpop-iblis-avilari-movie',
+        'the-wampire-hunter-movie'
+      ],
+      'turk-filmleri': [
+        'yanyana-movie',
+        'the-sleeper',
+        'm6',
+        'm8',
+        'dag-serisi',
+        'sadece-sen-movie',
+        'bizim-icin-sampiyon-movie'
+      ],
+      'belgesel': [
+        'hayalet-filmler-movie'
+      ],
+      'gerilim-korku': [
+        'the-sleeper',
+        'the-mongoose-2026',
+        'vahsinin-kalbi-2026',
+        'the-wampire-hunter-movie'
+      ],
+      'fantastik-bilim-kurgu': [
+        'the-odyssey-2026',
+        'avatar-ates-ve-kul',
+        'm11',
+        'the-wampire-hunter-movie',
+        'minecraft-filmi-2025',
+        'ne-zha-movie',
+        'raya-ve-son-ejderha-movie',
+        'kpop-iblis-avilari-movie',
+        'm4',
+        'm5',
+        'super-mario-galaxy-movie',
+        'ancak-ruyada-olur-movie'
+      ],
+      'aksiyon': [
+        'the-mongoose-2026',
+        'vahsinin-kalbi-2026',
+        'm11',
+        'dag-serisi',
+        'm6',
+        'the-sleeper',
+        'avatar-ates-ve-kul',
+        'the-odyssey-2026',
+        'the-wampire-hunter-movie',
+        'kpop-iblis-avilari-movie'
+      ]
+    };
+    const KNOWN_MOVIE_IDS = new Set(Object.values(MOVIE_CATEGORY_IDS).flat());
+
     // Dinamik Film Kategori Oluşturucu (YALNIZCA DB.movies kullanılır, diziler kesinlikle sızamaz)
     categories = CATEGORIES.map(cat => {
-      let matches = [];
-      if (cat.key === 'son-eklenenler-film') {
-        const latestFilmIds = [
-          'the-odyssey-2026',
-          'the-gospel-of-christmas-2026',
-          'the-mongoose-2026',
-          'vahsinin-kalbi-2026',
-          'minecraft-filmi-2025',
-          'kpop-iblis-avilari-movie'
-        ];
-        matches = latestFilmIds.map(id => DB.movies.find(m => m.id === id)).filter(Boolean);
-        if (matches.length < 6) {
-          DB.movies.forEach(m => {
-            if (!m.isSeries && !m.showOnlyInOrbital && !matches.some(x => x.id === m.id) && matches.length < 6) {
-              matches.push(m);
-            }
-          });
-        }
-      } else {
-        DB.movies.forEach(item => {
-          if (item.isSeries || item.seasons) return;
-          if (item.showOnlyInOrbital || (item.id && item.id.includes('-single'))) return;
-          if (item.isCategory) return;
-          
+      const eligible = DB.movies.filter(item =>
+        !(item.isSeries || item.seasons || item.showOnlyInOrbital || (item.id && item.id.includes('-single')) || item.isCategory)
+      );
+      const curated = MOVIE_CATEGORY_IDS[cat.key] || [];
+      let matches = curated.map(id => eligible.find(m => m.id === id)).filter(Boolean);
+
+      if (cat.key !== 'son-eklenenler-film') {
+        eligible.forEach(item => {
+          if (KNOWN_MOVIE_IDS.has(item.id)) return;
           const tags = ((item.searchTags || '') + ' ' + (item.title || '') + ' ' + (item.desc || '')).toLowerCase();
-          const title = (item.title || '').toLowerCase();
-          const mid = item.id || '';
-          
-          let assignedKey = '';
-          
-          // Özel Kullanıcı Atamaları (Explicit Overrides)
-          if (mid === 'm6' || mid === 'm8' || mid === 'dag-serisi' || mid === 'sadece-sen-movie' || mid === 'bizim-icin-sampiyon-movie') {
-            assignedKey = 'turk-filmleri';
-          }
-          else if (mid === 'hayalet-filmler-movie') {
-            assignedKey = 'belgesel';
-          }
-          else if (mid === 'the-mongoose-2026' || mid === 'vahsinin-kalbi-2026' || mid === 'the-sleeper') {
-            assignedKey = 'gerilim-korku';
-          }
-          else if (mid === 'the-odyssey-2026' || mid === 'avatar-ates-ve-kul' || mid === 'm11' || mid === 'the-wampire-hunter-movie') {
-            assignedKey = 'fantastik-bilim-kurgu';
-          }
-          else if (mid === 'the-gospel-of-christmas-2026') {
-            assignedKey = 'aksiyon';
-          }
-          
-          // Genel Kural Eşleşmeleri
-          if (!assignedKey) {
-            // 1. ANİMASYON
-            if (tags.includes('animasyon') || tags.includes('sincap') || tags.includes('karınca') || tags.includes('mario') || tags.includes('ejderha') || tags.includes('coco') || tags.includes('saftirik') || title.includes('alvin') || title.includes('ejderha') || title.includes('zooto') || title.includes('saftirik') || title.includes('coco') || title.includes('karınca') || title.includes('raya') || title.includes('elio') || title.includes('swapped') || title.includes('stitch') || title.includes('mario') || title.includes('arabalar') || title.includes('ant bully') || title.includes('anime') || title.includes('yanyana') || title.includes('kayara') || title.includes('ne zha') || title.includes('twits') || title.includes('minecraft') || title.includes('kpop')) {
-              assignedKey = 'animasyon';
-            }
-            // 2. GERİLİM-KORKU
-            else if (tags.includes('gerilim') || tags.includes('korku') || tags.includes('gizem')) {
-              assignedKey = 'gerilim-korku';
-            }
-            // 3. TÜRK FİLMLERİ
-            else if (tags.includes('türk filmi') || tags.includes('türk') || tags.includes('dayı') || tags.includes('atatürk') || title.includes('atatürk') || title.includes('dayı')) {
-              assignedKey = 'turk-filmleri';
-            }
-            // 4. FANTASTİK-BİLİM KURGU
-            else if (tags.includes('fantastik') || tags.includes('bilim kurgu') || tags.includes('uzay') || tags.includes('vampir') || title.includes('avatar') || title.includes('mini') || title.includes('journey')) {
-              assignedKey = 'fantastik-bilim-kurgu';
-            }
-            // 5. BELGESEL
-            else if (tags.includes('belgesel') || title.includes('belgesel')) {
-              assignedKey = 'belgesel';
-            }
-            // 6. AKSİYON (Varsayılan ve geri kalanlar)
-            else {
-              assignedKey = 'aksiyon';
-            }
-          }
-          
-          if (assignedKey === cat.key) {
-            matches.push(item);
-          }
+          let ok = false;
+          if (cat.key === 'animasyon') ok = tags.includes('animasyon') || tags.includes('anime');
+          else if (cat.key === 'turk-filmleri') ok = tags.includes('türk filmi') || tags.includes('yerli sinema');
+          else if (cat.key === 'belgesel') ok = tags.includes('belgesel');
+          else if (cat.key === 'gerilim-korku') ok = tags.includes('gerilim') || tags.includes('korku');
+          else if (cat.key === 'fantastik-bilim-kurgu') ok = tags.includes('fantastik') || tags.includes('bilim kurgu') || tags.includes('uzay');
+          else if (cat.key === 'aksiyon') ok = tags.includes('aksiyon');
+          if (ok && !matches.some(m => m.id === item.id)) matches.push(item);
         });
       }
-      
+
       // Remove duplicates
       matches = matches.filter((val, idx, self) => self.findIndex(t => t.id === val.id) === idx);
-      
+
       return {
         id: cat.id,
         title: cat.title,
