@@ -170,7 +170,7 @@
 
     <script>
 // Otonom Dinamik Yayın Sunucusu Çözücü (GitHub raw streamer_url.txt)
-window.SIOM_STREAMER_HOST = "https://six-easily-proceeds-framed.trycloudflare.com";
+window.SIOM_STREAMER_HOST = "https://hull-cookbook-wit-hurricane.trycloudflare.com";
 (function() {
   const cacheBust = '?t=' + Math.floor(Date.now() / 15000);
   fetch('https://raw.githubusercontent.com/siomclip/siomclip.github.io/main/streamer_url.txt' + cacheBust)
@@ -188,7 +188,7 @@ window.SIOM_STREAMER_HOST = "https://six-easily-proceeds-framed.trycloudflare.co
 
 window.resolveStreamUrl = function(u) {
   if (!u) return '';
-  const host = window.SIOM_STREAMER_HOST || "https://six-easily-proceeds-framed.trycloudflare.com";
+  const host = window.SIOM_STREAMER_HOST || "https://hull-cookbook-wit-hurricane.trycloudflare.com";
   if (u.includes('trycloudflare.com') || u.includes('onrender.com')) {
     return u.replace(/https:\/\/[^/]*(trycloudflare\.com|onrender\.com)/, host);
   }
@@ -7958,7 +7958,7 @@ window.submitUserRequest = async function(type) {
     <script>
         (function() {
             function pingStreamer() {
-                const host = window.SIOM_STREAMER_HOST || "https://six-easily-proceeds-framed.trycloudflare.com";
+                const host = window.SIOM_STREAMER_HOST || "https://hull-cookbook-wit-hurricane.trycloudflare.com";
                 fetch(host + '/', { cache: 'no-store', mode: 'no-cors' }).catch(() => {});
             }
             // Sayfa açıldığında sunucuyu hemen ısıt
