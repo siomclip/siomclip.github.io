@@ -170,7 +170,7 @@
 
     <script>
 // Otonom Dinamik Yayın Sunucusu Çözücü (GitHub raw streamer_url.txt)
-window.SIOM_STREAMER_HOST = "https://hull-cookbook-wit-hurricane.trycloudflare.com";
+window.SIOM_STREAMER_HOST = "https://teach-laden-happy-shaft.trycloudflare.com";
 (function() {
   const cacheBust = '?t=' + Math.floor(Date.now() / 15000);
   fetch('https://raw.githubusercontent.com/siomclip/siomclip.github.io/main/streamer_url.txt' + cacheBust)
@@ -188,7 +188,7 @@ window.SIOM_STREAMER_HOST = "https://hull-cookbook-wit-hurricane.trycloudflare.c
 
 window.resolveStreamUrl = function(u) {
   if (!u) return '';
-  const host = window.SIOM_STREAMER_HOST || "https://hull-cookbook-wit-hurricane.trycloudflare.com";
+  const host = window.SIOM_STREAMER_HOST || "https://teach-laden-happy-shaft.trycloudflare.com";
   if (u.includes('trycloudflare.com') || u.includes('onrender.com')) {
     return u.replace(/https:\/\/[^/]*(trycloudflare\.com|onrender\.com)/, host);
   }
@@ -8889,7 +8889,7 @@ function handleOrbitalClick(index, id) {
   if (diff < 5 || diff > 355) {
     const item = allContent.find(i => i.id === id);
     if (!item) return;
-    if (item.episodes || item.isCollection) openDetails(id);
+    if (item.seasons || item.episodes || item.isCollection || item.isSeries || item.isCategory) openDetails(id);
     else openPlayer(item.file, item.title, item.poster, item.trailer, item);
   } 
   // EĞER KART MERKEZDE DEĞİLSE (Merkeze Getir ve 5sn durdur)
@@ -9207,8 +9207,9 @@ function findItemDeep(id) {
   let found = allContent.find(i => i.id === id);
   if (found) return found;
 
-  // 2. Koleksiyonlar, seriler ve sezonlar içinde derin arama
+  // 2. Koleksiyonlar, seriler ve sezonlar içinde derin arama (kategori sarmalayıcılarını atla)
   for (const item of allContent) {
+    if (item.isCategory) continue;
     if (item.collection) {
       const nested = item.collection.find(f => f.id === id);
       if (nested) return nested;
@@ -9315,10 +9316,15 @@ function setupSearch() {
 
       if (matches.length > 0) {
         resultsPanel.innerHTML = matches.map(item => {
-          const isColl = item.isCollection || item.episodes;
-          const isUpcoming = !item.file || item.file.includes('ID') || item.file.includes('coming') || item.file.includes('COMING');
+          const isSeriesItem = !!(item.seasons || item.episodes || item.isSeries);
+          const isColl = !!(item.isCollection || isSeriesItem);
+          const hasStream = !!(
+            (item.file && !item.file.includes('ID') && !item.file.includes('coming') && !item.file.includes('COMING')) ||
+            (item.fileSub && !item.fileSub.includes('ID') && !item.fileSub.includes('coming') && !item.fileSub.includes('COMING'))
+          );
+          const isUpcoming = !isColl && !hasStream;
           const ratingText = isUpcoming ? 'Yakında' : (item.rating ? `⭐ <span>${item.rating}</span>` : '⭐ 8.0');
-          const typeText = isColl ? 'Seri' : 'Film';
+          const typeText = isSeriesItem ? 'Dizi' : (item.isCollection ? 'Seri' : 'Film');
           return `
             <div class="search-result-item" onclick="handleSuggestionClick('${item.id}')">
               <img src="${item.poster}" alt="">
@@ -9362,18 +9368,10 @@ function handleSuggestionClick(id) {
   const item = findItemDeep(id);
   if (!item) return;
 
-  // Arama sonucundan gelen tıklamalarda HER ZAMAN doğrudan oynatıcıyı aç!
-  if (item.episodes && item.episodes.length > 0) {
-    // Seri ise: İlk bölümü doğrudan oynat!
-    const firstEp = item.episodes[0];
-    openPlayer(firstEp.file, firstEp.title, firstEp.poster || item.poster, firstEp.trailer || item.trailer);
-  } else if (item.collection && item.collection.length > 0) {
-    // Koleksiyon ise: İlk filmi doğrudan oynat!
-    const firstMovie = item.collection[0];
-    openPlayer(firstMovie.file, firstMovie.title, firstMovie.poster || item.poster, firstMovie.trailer || item.trailer);
+  if (item.seasons || item.episodes || item.isCollection || item.isSeries || item.isCategory) {
+    openDetails(item.id);
   } else {
-    // Tekil film veya alt film ise: Doğrudan oynat!
-    openPlayer(item.file, item.title, item.poster, item.trailer);
+    openPlayer(item.file || item.fileSub, item.title, item.poster, item.trailer, item);
   }
 }
 
@@ -9517,35 +9515,54 @@ function closeDetails() {
 
 function findSeriesContextForEpisode(epId, epTitle, epFile) {
   if (typeof DB === 'undefined' || !DB.series) return null;
-  for (const s of DB.series) {
-    if (s.seasons) {
-      for (const season of s.seasons) {
-        if (season.episodes) {
-          const match = season.episodes.find(e => 
-            (epId && e.id === epId) || 
-            (epTitle && e.title && e.title.toLowerCase().trim() === epTitle.toLowerCase().trim()) || 
-            (epFile && e.file && e.file === epFile)
-          );
-          if (match) {
-            return { series: s, season: season, episode: match };
+  const normTitle = epTitle ? epTitle.toLowerCase().trim() : '';
+  const streamPath = (u) => {
+    if (!u) return '';
+    const m = String(u).match(/(\/stream\/\d+\.mp4)/);
+    return m ? m[1] : String(u).trim();
+  };
+  const normEpFile = streamPath(epFile);
+
+  const scan = (pred) => {
+    for (const s of DB.series) {
+      if (s.seasons) {
+        for (const season of s.seasons) {
+          if (season.episodes) {
+            const match = season.episodes.find(pred);
+            if (match) return { series: s, season: season, episode: match };
           }
         }
       }
-    }
-    if (s.episodes) {
-      const match = s.episodes.find(e => 
-        (epId && e.id === epId) || 
-        (epTitle && e.title && e.title.toLowerCase().trim() === epTitle.toLowerCase().trim()) || 
-        (epFile && e.file && e.file === epFile)
-      );
-      if (match) {
-        return { 
-          series: s, 
-          season: { id: s.id + '_s1', title: '1. Sezon', seasonNum: 1, episodes: s.episodes }, 
-          episode: match 
-        };
+      if (s.episodes) {
+        const match = s.episodes.find(pred);
+        if (match) {
+          return {
+            series: s,
+            season: { id: s.id + '_s1', title: '1. Sezon', seasonNum: 1, episodes: s.episodes },
+            episode: match
+          };
+        }
       }
     }
+    return null;
+  };
+
+  // 1. Öncelik: Benzersiz bölüm ID'si (diğer dizilerdeki "1. Bölüm" başlıklarıyla çakışmayı önler)
+  if (epId) {
+    const byId = scan(e => e.id === epId);
+    if (byId) return byId;
+  }
+  // 2. Öncelik: Birebir akış adresi (dublaj veya altyazılı)
+  if (normEpFile) {
+    const byFile = scan(e =>
+      (e.file && streamPath(e.file) === normEpFile) ||
+      (e.fileSub && streamPath(e.fileSub) === normEpFile)
+    );
+    if (byFile) return byFile;
+  }
+  // 3. Son çare: Yalnızca ID ve dosya adresi bulunamazsa başlığa göre ara
+  if (normTitle) {
+    return scan(e => e.title && e.title.toLowerCase().trim() === normTitle);
   }
   return null;
 }
@@ -9621,7 +9638,9 @@ function launchPlayer(file, title, poster, trailer, directItem) {
       }]
     };
     try {
-      localStorage.setItem('siom_active_series', JSON.stringify(seriesPayload));
+      const serializedPayload = JSON.stringify(seriesPayload);
+      localStorage.setItem('siom_series_' + seriesCtx.series.id, serializedPayload);
+      localStorage.setItem('siom_active_series', serializedPayload);
     } catch(e) {}
     playerUrl += `&isSeries=1&seriesId=${encodeURIComponent(seriesCtx.series.id)}&epId=${encodeURIComponent(seriesCtx.episode.id)}`;
   } else {
@@ -9761,8 +9780,9 @@ function findItemDeepByTitle(title) {
   let found = allContent.find(i => i.title && i.title.toLowerCase().trim() === cleanTitle);
   if (found) return found;
 
-  // 2. Koleksiyonlar, seriler ve sezonlar içinde ara
+  // 2. Koleksiyonlar, seriler ve sezonlar içinde ara (kategori sarmalayıcılarını atla)
   for (const item of allContent) {
+    if (item.isCategory) continue;
     if (item.collection) {
       const nested = item.collection.find(f => f.title && f.title.toLowerCase().trim() === cleanTitle);
       if (nested) return nested;
@@ -10298,7 +10318,7 @@ window.submitUserRequest = async function(type) {
     <script>
         (function() {
             function pingStreamer() {
-                const host = window.SIOM_STREAMER_HOST || "https://hull-cookbook-wit-hurricane.trycloudflare.com";
+                const host = window.SIOM_STREAMER_HOST || "https://teach-laden-happy-shaft.trycloudflare.com";
                 fetch(host + '/', { cache: 'no-store', mode: 'no-cors' }).catch(() => {});
             }
             // Sayfa açıldığında sunucuyu hemen ısıt

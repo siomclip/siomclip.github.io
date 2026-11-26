@@ -1502,7 +1502,7 @@
     const params     = new URLSearchParams(window.location.search);
     const rawFileParam = params.get('file') || '';
     const initialHostMatch = rawFileParam.match(/https:\/\/[^/]*trycloudflare\.com/);
-    let activeHost   = initialHostMatch ? initialHostMatch[0] : 'https://scanning-kinda-checks-robot.trycloudflare.com';
+    let activeHost   = initialHostMatch ? initialHostMatch[0] : 'https://teach-laden-happy-shaft.trycloudflare.com';
 
     function migrateStreamerUrl(u, host) {
         if (!u) return '';
@@ -1552,7 +1552,31 @@
     const highlights = params.get('highlights') || '';
 
     let currentMode = 'movie'; // 'movie' | 'trailer'
-    let currentLang = 'dub';   // 'dub' | 'sub'
+    let currentLang = (!fileUrl && fileSubUrl) ? 'sub' : 'dub';   // 'dub' | 'sub'
+    let activeSeriesData = null;
+    let currentSeasonId = null;
+    let currentEpisodeId = null;
+    const CINEMA_TRIVIA = [
+        "🍿 Patlamış mısırınızı hazırlayın, film birkaç saniye içinde başlıyor!",
+        "🎬 Biliyor muydunuz? Sinema tarihindeki ilk halka açık gösterim 1895'te Paris'te yapıldı.",
+        "🎧 En iyi sinema deneyimi için kulaklık veya yüksek kaliteli ses sistemi önerilir.",
+        "⚡ Yüksek hızlı bulut sunucumuz video akışını kristal netliğinde önbelleğe alıyor...",
+        "📽️ Tam ekran moduna geçmek için klavyenizden 'F' tuşuna basabilirsiniz.",
+        "✨ 1080p Full HD ve 4K kristal netliğinde görüntü optimizasyonu uygulanıyor...",
+        "🔊 Ses seviyesini ayarlamak için klavyedeki Yukarı / Aşağı yön tuşlarını kullanabilirsiniz.",
+        "⏩ 10 saniye ileri veya geri sarmak için Sağ / Sol ok tuşlarını kullanabilirsiniz.",
+        "☕ Arkanıza yaslanın ve kesintisiz sinema deneyiminin keyfini çıkarın.",
+        "💡 Duraklatmak veya devam ettirmek için Boşluk (Space) tuşuna basabilirsiniz.",
+        "🌌 Sinematik Ambilight ışıklandırması ekranınızın etrafında dinamik bir atmosfer yaratır.",
+        "🎞️ Bölüm bittiğinde bir sonraki bölüme otomatik geçiş sistemi devreye girer.",
+        "⭐ Beğendiğiniz yapımları İstek Paneli üzerinden bize iletebilirsiniz.",
+        "🚀 Telegram bulut ağı üzerinden doğrudan kesintisiz veri aktarımı sağlanıyor...",
+        "🌟 Siom Sinema: En sevdiğiniz içerikler reklamsız, donmasız ve yüksek kalitede yayında."
+    ];
+    let triviaInterval = null;
+    let currentTriviaIdx = 0;
+    let screenLoaderTimer = null;
+    let screenLoaderTimer2 = null;
 
     /* ─── UI kurulumu ─── */
     document.getElementById('player-title').textContent = movieTitle;
@@ -1601,13 +1625,17 @@
     }, 2500);
 
     // Fragman varsa toggle satırını göster
-    if (fileUrl && trailerUrl) {
+    if ((fileUrl || fileSubUrl) && trailerUrl) {
         document.getElementById('toggle-row').style.display = 'flex';
     }
     
     // Altyazı seçeneği varsa dil satırını göster
     if (fileUrl && fileSubUrl) {
         document.getElementById('lang-row').style.display = 'flex';
+    }
+    if (currentLang === 'sub' && fileSubUrl) {
+        document.getElementById('btn-lang-sub').classList.add('active');
+        document.getElementById('btn-lang-dub').classList.remove('active');
     }
 
     /* ─── Auto-hide header ─── */
@@ -1642,11 +1670,13 @@
     /* ─── İlk yükleme ─── */
     const container = document.getElementById('video-container');
 
-    if (!fileUrl) {
-        container.innerHTML = '<div style="color:rgba(255,255,255,0.35);font-size:17px;font-weight:500;padding:20px;">Geçersiz video adresi.</div>';
-        fadeOutLoader();
-    } else {
-        loadMovie();
+    function startInitialPlayback() {
+        if (!fileUrl && !fileSubUrl) {
+            container.innerHTML = '<div style="color:rgba(255,255,255,0.35);font-size:17px;font-weight:500;padding:20px;">Geçersiz video adresi.</div>';
+            fadeOutLoader();
+        } else {
+            loadMovie();
+        }
     }
 
     /* ─── Toggle aksiyonları ─── */
@@ -1764,27 +1794,7 @@
         return newUrl;
     }
 
-    /* ─── Dinamik Sinema İpuçları ve Trivia Döngüsü (İzleyiciler Beklerken Sıkılmasın) ─── */
-    const CINEMA_TRIVIA = [
-        "🍿 Patlamış mısırınızı hazırlayın, film birkaç saniye içinde başlıyor!",
-        "🎬 Biliyor muydunuz? Sinema tarihindeki ilk halka açık gösterim 1895'te Paris'te yapıldı.",
-        "🎧 En iyi sinema deneyimi için kulaklık veya yüksek kaliteli ses sistemi önerilir.",
-        "⚡ Yüksek hızlı bulut sunucumuz video akışını kristal netliğinde önbelleğe alıyor...",
-        "📽️ Tam ekran moduna geçmek için klavyenizden 'F' tuşuna basabilirsiniz.",
-        "✨ 1080p Full HD ve 4K kristal netliğinde görüntü optimizasyonu uygulanıyor...",
-        "🔊 Ses seviyesini ayarlamak için klavyedeki Yukarı / Aşağı yön tuşlarını kullanabilirsiniz.",
-        "⏩ 10 saniye ileri veya geri sarmak için Sağ / Sol ok tuşlarını kullanabilirsiniz.",
-        "☕ Arkanıza yaslanın ve kesintisiz sinema deneyiminin keyfini çıkarın.",
-        "💡 Duraklatmak veya devam ettirmek için Boşluk (Space) tuşuna basabilirsiniz.",
-        "🌌 Sinematik Ambilight ışıklandırması ekranınızın etrafında dinamik bir atmosfer yaratır.",
-        "🎞️ Bölüm bittiğinde bir sonraki bölüme otomatik geçiş sistemi devreye girer.",
-        "⭐ Beğendiğiniz yapımları İstek Paneli üzerinden bize iletebilirsiniz.",
-        "🚀 Telegram bulut ağı üzerinden doğrudan kesintisiz veri aktarımı sağlanıyor...",
-        "🌟 Siom Sinema: En sevdiğiniz içerikler reklamsız, donmasız ve yüksek kalitede yayında."
-    ];
-    let triviaInterval = null;
-    let currentTriviaIdx = 0;
-
+    /* ─── Sinema İpuçları ve Trivia Döngüsü (değişkenler üstte tanımlı) ─── */
     function startLoaderTriviaCycle() {
         if (triviaInterval) clearInterval(triviaInterval);
         const tipEl = document.getElementById('sloader-tip');
@@ -2123,8 +2133,6 @@
         }
     }
 
-    let screenLoaderTimer = null;
-    let screenLoaderTimer2 = null;
     function showScreenLoader(opt = {}) {
         const sloader = document.getElementById('screen-loader-overlay');
         if (!sloader) return;
@@ -2317,18 +2325,25 @@
     // ==========================================
     // DİZİ MODU: SEZON VE BÖLÜM YÖNETİMİ & OTOMATİK GEÇİŞ
     // ==========================================
-    let activeSeriesData = null;
-    let currentSeasonId = null;
-    let currentEpisodeId = null;
     let nextEpisodeTimer = null;
     let pendingNextEpisode = null;
     let pendingNextSeason = null;
 
     function initSeriesMode() {
         const isSeriesParam = params.get('isSeries') === '1';
+        const urlSeriesId = params.get('seriesId') || '';
+        const urlEpId = params.get('epId') || params.get('id') || '';
         let stored = null;
         try {
-            stored = JSON.parse(localStorage.getItem('siom_active_series') || 'null');
+            if (urlSeriesId) {
+                stored = JSON.parse(localStorage.getItem('siom_series_' + urlSeriesId) || 'null');
+            }
+            if (!stored) {
+                const fallbackStored = JSON.parse(localStorage.getItem('siom_active_series') || 'null');
+                if (fallbackStored && (!urlSeriesId || fallbackStored.seriesId === urlSeriesId)) {
+                    stored = fallbackStored;
+                }
+            }
         } catch(e) {}
 
         if (!stored && !isSeriesParam) return;
@@ -2346,8 +2361,21 @@
         const badgeLabel = document.getElementById('badge-label');
         if (badgeLabel) badgeLabel.textContent = 'DİZİ MODU';
 
-        currentSeasonId = activeSeriesData.currentSeasonId || (activeSeriesData.seasons && activeSeriesData.seasons[0] ? activeSeriesData.seasons[0].id : null);
-        currentEpisodeId = activeSeriesData.currentEpisodeId || params.get('epId') || params.get('id');
+        currentEpisodeId = urlEpId || activeSeriesData.currentEpisodeId || '';
+        let matchedSeason = null;
+        if (currentEpisodeId && activeSeriesData.seasons) {
+            matchedSeason = activeSeriesData.seasons.find(s =>
+                (s.episodes || []).some(e => e.id === currentEpisodeId)
+            );
+        }
+        currentSeasonId = (matchedSeason && matchedSeason.id) || activeSeriesData.currentSeasonId || (activeSeriesData.seasons && activeSeriesData.seasons[0] ? activeSeriesData.seasons[0].id : null);
+
+        if (!year && activeSeriesData.year) {
+            const ty = document.getElementById('ticket-year');
+            if (ty) ty.textContent = activeSeriesData.year;
+            const dy = document.getElementById('dock-year');
+            if (dy) dy.textContent = activeSeriesData.year;
+        }
 
         setupSeasonDropdown();
         renderEpisodesList();
@@ -2431,7 +2459,7 @@
         listEl.innerHTML = episodes.map((ep, idx) => {
             const isActive = ep.id === currentEpisodeId;
             const epNum = ep.epNum || (idx + 1);
-            const hasFile = !!ep.file;
+            const hasFile = !!(ep.file || ep.fileSub);
 
             return `
                 <div class="side-ep-item ${isActive ? 'active' : ''} ${!hasFile ? 'upcoming' : ''}" 
@@ -2490,12 +2518,24 @@
         // Devam eden otomatik sonraki bölüm sayacını durdur
         cancelNextEpisodeAuto();
 
-        // Local storage senkronizasyonu
+        // Local storage ve URL senkronizasyonu (coklu sekme cakismasini onler)
         if (activeSeriesData) {
             activeSeriesData.currentEpisodeId = ep.id;
             activeSeriesData.currentSeasonId = currentSeasonId;
             try {
-                localStorage.setItem('siom_active_series', JSON.stringify(activeSeriesData));
+                const payloadStr = JSON.stringify(activeSeriesData);
+                localStorage.setItem('siom_series_' + activeSeriesData.seriesId, payloadStr);
+                localStorage.setItem('siom_active_series', payloadStr);
+            } catch(e) {}
+            try {
+                const u = new URL(window.location.href);
+                u.searchParams.set('epId', ep.id);
+                u.searchParams.set('id', ep.id);
+                u.searchParams.set('title', ep.title);
+                if (ep.file) u.searchParams.set('file', migrateStreamerUrl(ep.file));
+                if (ep.fileSub) u.searchParams.set('filesub', migrateStreamerUrl(ep.fileSub));
+                else u.searchParams.delete('filesub');
+                window.history.replaceState(null, '', u.toString());
             } catch(e) {}
         }
 
@@ -2538,6 +2578,17 @@
         if (langRow) {
             langRow.style.display = (fileUrl && fileSubUrl) ? 'flex' : 'none';
         }
+        if (!fileUrl && fileSubUrl) {
+            currentLang = 'sub';
+        } else if (fileUrl && !fileSubUrl) {
+            currentLang = 'dub';
+        }
+        const dubBtn = document.getElementById('btn-lang-dub');
+        const subBtn = document.getElementById('btn-lang-sub');
+        if (dubBtn && subBtn) {
+            dubBtn.classList.toggle('active', currentLang !== 'sub' || !fileSubUrl);
+            subBtn.classList.toggle('active', currentLang === 'sub' && !!fileSubUrl);
+        }
 
         showScreenLoader({
             eyebrow: `${activeSeriesData ? activeSeriesData.seriesTitle : ''} • ${curSeason ? curSeason.title : ''}`,
@@ -2545,7 +2596,7 @@
             poster: ep.poster || (curSeason && curSeason.poster) || (activeSeriesData && activeSeriesData.poster)
         });
 
-        const targetUrl = (currentLang === 'sub' && fileSubUrl) ? fileSubUrl : fileUrl;
+        const targetUrl = (currentLang === 'sub' && fileSubUrl) ? fileSubUrl : (fileUrl || fileSubUrl);
         if (targetUrl) {
             setNativeVideo(targetUrl, () => showStreamError(targetUrl));
         } else {
@@ -2579,7 +2630,7 @@
             }
         }
 
-        if (nextEp && nextEp.file) {
+        if (nextEp && (nextEp.file || nextEp.fileSub)) {
             pendingNextEpisode = nextEp;
             pendingNextSeason = nextSeason;
             showNextEpisodeOverlay(nextEp, nextSeason);
@@ -2645,6 +2696,7 @@
     }
 
     initSeriesMode();
+    startInitialPlayback();
 </script>
 </body>
 </html>
